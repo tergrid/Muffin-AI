@@ -14,22 +14,31 @@ import {
 import HomePage from './routes/homePage/HomePage.jsx';
 import DashboardPage from './routes/dashboardPage/DashboardPage.jsx';
 import ChatPage from './routes/chatPage/ChatPage.jsx';
+import RootLayout from './layouts/rootLayout/rootLayout.jsx';
+import DashboardLayout from './layouts/dashboardLayout/dashboardLayout.jsx';
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element:<HomePage/>
-  },
-  {
-    path: "/dashboard",
-    
+    element:<RootLayout></RootLayout>,
     children:[
       {
-        path: "/dashboard",element: <DashboardPage/>,
-        path:"/dashboard/chats/:id",element:<ChatPage/>
+        path: "/", element:<HomePage></HomePage>
+      },
+      {
+        element:<DashboardLayout></DashboardLayout>,
+        children:[
+          {
+            path:"/dashboard",
+            element: <DashboardPage></DashboardPage>,
+          },
+          {
+            path:"/dashboard/chats/:id",
+            element: <ChatPage></ChatPage>,
+          }
+        ]
       }
     ]
-  },
+  }
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
