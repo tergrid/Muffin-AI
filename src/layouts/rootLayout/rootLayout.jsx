@@ -6,8 +6,8 @@ const RootLayout = () => {
     <div className='rootLayout'>
         <header>
             <Link to="/" className='logo'>
-            <img src="/logo.png" alt="" />
-            <span>MUFFIN AI</span>
+            <img src="/letter-m.png" alt="" />
+            <span>muffin ai</span>
             </Link>
             <div className="user">User</div>
         </header>
