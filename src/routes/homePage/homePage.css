@@ -68,6 +68,28 @@
         object-fit: contain;
         animation: botAnimate 2s ease-in-out forwards;
     }
+
+    .chat{
+        position: absolute;
+        bottom: 332px;
+        right: -232px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 20px;
+        background-color: #412519;
+        color: beige;
+        border-radius: 10px;
+        animation: chatAnimate 2s ease-in-out forwards;
+
+        img{
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    }
+
     .orbital {
         position: absolute;
         bottom: 0;
@@ -90,6 +112,14 @@
 }
 
 @keyframes botAnimate {
+    0% {
+        transform: scale(1)
+    }
+    100% {
+        transform: scale(1.1)
+    }
+}
+@keyframes chatAnimate {
     0% {
         transform: scale(1)
     }
