@@ -1,0 +1,109 @@
+.homePage {
+    display: flex;
+    align-items: center;
+    gap: 100px;
+    height: 100%;
+
+    .left {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        text-align: center;
+
+        h1 {
+            font-size: 128px;
+            background: linear-gradient(to right, #412519, #020200);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        h3 {
+            font-weight: 400;
+            max-width: 70%;
+        }
+
+        a {
+            padding: 15px 25px;
+            background-color: #412519;
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+
+            &:hover {
+                background-color: white;
+                color: #217bfe;
+            }
+        }
+    }
+
+    .right {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+
+        .imgContainer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* background-color: #140e2d; */
+            /* border-radius: 50px; */
+            width: 192px;
+            height: 192px;
+            position: relative;
+            
+            
+        }
+    }
+
+    .bot {
+        border-radius: 40px;
+        height: 56vh;
+        width: 56vw;
+        object-fit: contain;
+        animation: botAnimate 2s ease-in-out forwards;
+    }
+    .orbital {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        opacity: 0.15;
+        animation: 100s linear infinite rotateOrbital
+    }
+
+
+}
+
+@keyframes rotateOrbital {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(60deg)
+    }
+}
+
+@keyframes botAnimate {
+    0% {
+        transform: scale(1)
+    }
+    100% {
+        transform: scale(1.1)
+    }
+}
+
+/* @keyframes slideBg {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: ranslateX(-50%);
+    }
+} */
