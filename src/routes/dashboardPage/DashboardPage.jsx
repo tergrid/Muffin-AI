@@ -5,7 +5,7 @@ const DashboardPage = () => {
     <div className='dashboardPage'>
       <div className="texts">
         <div className="logo">
-          <img src="/muffin_logo_chocolate.png" alt=""/>
+          <img src="/muffin_logo_icon.png" alt=""/>
           <h1>muffin ai</h1>
         </div>
         <div className="options">

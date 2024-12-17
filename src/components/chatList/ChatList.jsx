@@ -10,13 +10,13 @@ const ChatList = () => {
         <hr />
         <span><div className="title">recent chat</div></span>
             <div className="list">
-                <Link to='/'>my chat title</Link> <br />
+                <Link to='/dashboard/chats'>my chat title</Link> <br />
             </div>
         <hr />
         <div className="upgrade">
             <img src="/gnash.png" alt="" className='imgupgrade'/>
             <div className="texts">
-                <span>upgrade to muffin ai gnash</span> <br />
+                <span>upgrade to muffin ganache</span> <br />
                 <span>get unlimited access to all features</span>
             </div>
         </div>

@@ -18,7 +18,7 @@ const RootLayout = () => {
             <span><img src="/muffin_logo_chocolate.png" alt="" /></span>
             {/* <span>muffin ai</span> */}
           </Link>
-          <div className="user">User
+          <div className="user">
             <header>
               <SignedIn>
                 <UserButton />

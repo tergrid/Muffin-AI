@@ -118,7 +118,7 @@
         position: absolute;
         bottom: 0;
         left: 0;
-        opacity: 0.15;
+        opacity: 0.4;
         animation: 100s linear infinite rotateOrbital;
         z-index: -1;
     }
