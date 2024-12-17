@@ -21,7 +21,7 @@
 
         h1 {
             font-size: 128px;
-            background: linear-gradient(to right, #412519, #704838);
+            background: linear-gradient(to right, #3b7058, #3b7058);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
@@ -36,6 +36,7 @@
         h3 {
             font-weight: 400;
             max-width: 70%;
+            color: #0c0c0c;
 
             @media screen and (max-width: 1024px) {
                 max-width: 100%;
@@ -51,8 +52,8 @@
             font-size: 14px;
 
             &:hover {
-                background-color: white;
-                color: #217bfe;
+                background-color: #3b7058;
+                color: beige;
             }
         }
     }
@@ -93,7 +94,7 @@
         align-items: center;
         gap: 10px;
         padding: 20px;
-        background-color: #412519;
+        background-color: #3b7058;
         color: beige;
         border-radius: 10px;
         animation: chatAnimate 2s ease-in-out forwards;
@@ -118,7 +119,7 @@
         position: absolute;
         bottom: 0;
         left: 0;
-        opacity: 0.4;
+        opacity: 1;
         animation: 100s linear infinite rotateOrbital;
         z-index: -1;
     }

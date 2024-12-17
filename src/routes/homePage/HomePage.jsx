@@ -8,7 +8,7 @@ const HomePage = () => {
   const [typingStatus, setTypingStatus] = useState("Human-1");
   return (
     <div className='homePage'>
-      <img src="./orbital.png" alt="" className='orbital' />
+      <img src="./orbital-3.png" alt="" className='orbital' />
       <div className="left">
         <h1>muffin.ai</h1>
         <h2>enhance your knowledge with an online buddy</h2>
