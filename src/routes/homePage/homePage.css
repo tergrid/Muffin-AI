@@ -20,8 +20,20 @@
         text-align: center;
 
         h1 {
-            font-size: 128px;
-            background: linear-gradient(to right, #3b7058, #3b7058);
+            font-family: 'Coiny','system-ui';
+            font-size: 96px;
+            background-color: #3d1d17;
+            display: flex;
+            .dot{
+                background-color: #417e81;
+            }
+            .letter-a{
+                background-color: #cc241d;
+            }
+            .letter-i{
+                background-color: #cd921f;
+            }
+            /* background: linear-gradient(to right, #cc241d, #d49721); */
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
@@ -48,11 +60,11 @@
             padding: 15px 25px;
             background-color: #412519;
             color: white;
-            border-radius: 20px;
+            border-radius: 8px;
             font-size: 14px;
 
             &:hover {
-                background-color: #3b7058;
+                background-color: #cd921f;
                 color: beige;
             }
         }
@@ -94,9 +106,10 @@
         align-items: center;
         gap: 10px;
         padding: 20px;
-        background-color: #3b7058;
+        background-color: #3d1d17;
         color: beige;
         border-radius: 10px;
+        border: #704b3b 4px solid;
         animation: chatAnimate 2s ease-in-out forwards;
 
         img{
@@ -104,6 +117,7 @@
             height: 32px;
             border-radius: 50%;
             object-fit: cover;
+            border: #417e81 2px solid;
         }
         @media screen and (max-width: 1024px){
             display: none;
