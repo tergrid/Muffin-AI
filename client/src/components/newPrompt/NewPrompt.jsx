@@ -3,6 +3,7 @@ import Upload from '../upload/Upload.jsx';
 import { useState, useRef, useEffect } from 'react';
 import { IKImage } from 'imagekitio-react';
 import model from '../../lib/gemini.js';
+import Markdown from 'react-markdown'; 
 
 const NewPrompt = () => {
   const [question, setQuestion] = useState("");
@@ -20,11 +21,10 @@ const NewPrompt = () => {
     if (endRef.current) {
       endRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [question, answer]);
+  }, [question, answer, img.dbData]);
 
   const add = async (text) => {
     try {
-      setQuestion(text);
       const result = await model.generateContent(text);
 
       if (result && result.response) {
@@ -39,9 +39,9 @@ const NewPrompt = () => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent page refresh
+    e.preventDefault(); // Prevent form refresh
     if (question.trim()) {
-      add(question);
+      add(question); // Call the add function with the user-provided question
     }
   };
 
@@ -57,7 +57,7 @@ const NewPrompt = () => {
         />
       )}
       {question && <div className="message user">{question}</div>}
-      {answer && <div className="message">{answer}</div>}
+      {answer && <div className="message"><Markdown>{answer}</Markdown></div>}
       <div className="endChat">
         <form className="newForm" onSubmit={handleSubmit}>
           <Upload setImg={setImg} />
@@ -71,9 +71,9 @@ const NewPrompt = () => {
             type="text"
             name="text"
             placeholder="Ask Anything..."
-            onChange={(e) => setQuestion(e.target.value)}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)} // Update question state
           />
-          {/* Use the submit button correctly */}
           <button type="submit">
             <img src="/arrow.png" alt="Submit" />
           </button>

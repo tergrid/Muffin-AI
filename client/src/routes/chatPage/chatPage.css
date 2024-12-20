@@ -18,6 +18,10 @@
             flex-direction: column;
             gap: 20px;
 
+            p,li{
+                margin: 12px;
+            }
+
             .message{
                 padding: 20px;
                 background-color: beige;
