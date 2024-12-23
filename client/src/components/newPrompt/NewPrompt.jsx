@@ -39,11 +39,16 @@ const NewPrompt = () => {
 
   const add = async (text) => {
     try {
-      const result = await model.generateContent(Object.entries(img.aiData).length ? [img.aiData, text] : [text]);
+      const result = await chat.sendMessageStream(Object.entries(img.aiData).length ? [img.aiData, text] : [text]);
 
       if (result && result.response) {
-        const responseText = await result.response.text();
-        setAnswer(responseText);
+        let accumulatedText = "";
+        for await (const chunk of result.stream){
+          const chunkText = chunk.text();
+          console.log(chunkText);
+          accumulatedText+=chunkText;
+          setAnswer(accumulatedText);
+        }
         setImg({
           isLoading: false,
           error: '',
@@ -58,11 +63,12 @@ const NewPrompt = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault(); // Prevent form refresh
-    if (question.trim()) {
-      add(question); // Call the add function with the user-provided question
-    }
+    const text = e.target.text.value;
+    if(!text) return;
+
+    add(text);
   };
 
   return (
