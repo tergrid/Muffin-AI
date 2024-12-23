@@ -2,14 +2,12 @@ import express from "express";
 import ImageKit from "imagekit";
 import cors from 'cors';
 import Chat from '../models/chat.js';
-import userChats from '../models/userChats.js';
-
+import dotenv from "dotenv";
+import mongoose from 'mongoose';
+import userChats from "../models/userChats.js";
 
 const port = process.env.PORT || 3000;
 const app = express();
-
-import dotenv from "dotenv";
-import mongoose from 'mongoose';
 
 dotenv.config();
 
@@ -21,7 +19,7 @@ app.use(express.json());
 
 const connect = async()=>{
      try{
-          await Mongoose.connect(process.env.MONGO)
+          await mongoose.connect(process.env.MONGO)
           console.log("Connected to MongoDb");
      }catch(err){
           console.log(err);
@@ -59,9 +57,9 @@ app.post("/api/chats",async(req, res)=>{
           });
      const savedChat = await newChat.save();
      // CHECK IF THE USERCHATS EXIST
-     const userChats = await userChats.find({userId:userId});
+     const UserChats = await userChats.find({userId:userId});
      // IF DOESN'T EXIST CREATE A NEW ONE AND ADD THE CHAT IN THE CHATS ARRAY
-     if(!userChats.length){
+     if(!UserChats.length){
           const newUserChats = new userChats({
                userId: userId,
                chats:[
