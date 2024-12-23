@@ -1,10 +1,10 @@
 import express from "express";
 import ImageKit from "imagekit";
 import cors from 'cors';
-import Chat from '../models/chat.js';
+import Chat from './models/chat.js';
+import userChats from './models/userChats.js';
 import dotenv from "dotenv";
-import mongoose from 'mongoose';
-import userChats from "../models/userChats.js";
+
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -57,9 +57,9 @@ app.post("/api/chats",async(req, res)=>{
           });
      const savedChat = await newChat.save();
      // CHECK IF THE USERCHATS EXIST
-     const UserChats = await userChats.find({userId:userId});
+     const UserChat = await UserChat.find({userId:userId});
      // IF DOESN'T EXIST CREATE A NEW ONE AND ADD THE CHAT IN THE CHATS ARRAY
-     if(!UserChats.length){
+     if(!UserChat.length){
           const newUserChats = new userChats({
                userId: userId,
                chats:[
@@ -73,7 +73,7 @@ app.post("/api/chats",async(req, res)=>{
      await newUserChats.save();
      }else{
           // IF EXISTS PUSH THE CHAT TO THE EXISING ARRAY
-          await userChats.updateOne({userId:userId},{
+          await UserChat.updateOne({userId:userId},{
                $push:{
                     chats: {
                          _id: savedChat._id,
