@@ -15,6 +15,19 @@ const NewPrompt = () => {
     aiData: {},
   });
 
+  const chat = model.startChat({
+    history: [
+      {
+        role: "user",
+        parts: [{ text: "Hello" }],
+      },
+      {
+        role: "model",
+        parts: [{ text: "Great to meet you. What would you like to know?" }],
+      },
+    ],
+  });
+
   const endRef = useRef(null);
 
   // Smooth scroll to the bottom of the chat container
@@ -30,7 +43,7 @@ const NewPrompt = () => {
 
       if (result && result.response) {
         const responseText = await result.response.text();
-        setAnswer(response.text);
+        setAnswer(responseText);
         setImg({
           isLoading: false,
           error: '',
@@ -44,20 +57,6 @@ const NewPrompt = () => {
       console.error('Error generating content:', error);
     }
   };
-
-
-  const chat = model.startChat({
-    history: [
-      {
-        role: "user",
-        parts: [{ text: "Hello" }],
-      },
-      {
-        role: "model",
-        parts: [{ text: "Great to meet you. What would you like to know?" }],
-      },
-    ],
-  });
 
   const handleSubmit = (e) => {
     e.preventDefault(); // Prevent form refresh
