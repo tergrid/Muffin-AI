@@ -12,6 +12,7 @@ const NewPrompt = () => {
     isLoading: false,
     error: '',
     dbData: {},
+    aiData: {},
   });
 
   const endRef = useRef(null);
@@ -25,11 +26,17 @@ const NewPrompt = () => {
 
   const add = async (text) => {
     try {
-      const result = await model.generateContent(text);
+      const result = await model.generateContent(Object.entries(img.aiData).length ? [img.aiData, text] : [text]);
 
       if (result && result.response) {
         const responseText = await result.response.text();
-        setAnswer(responseText);
+        setAnswer(response.text);
+        setImg({
+          isLoading: false,
+          error: '',
+          dbData: {},
+          aiData: {},
+        })
       } else {
         console.error('Unexpected response from model.generateContent');
       }
@@ -37,6 +44,20 @@ const NewPrompt = () => {
       console.error('Error generating content:', error);
     }
   };
+
+
+  const chat = model.startChat({
+    history: [
+      {
+        role: "user",
+        parts: [{ text: "Hello" }],
+      },
+      {
+        role: "model",
+        parts: [{ text: "Great to meet you. What would you like to know?" }],
+      },
+    ],
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault(); // Prevent form refresh
