@@ -4,7 +4,7 @@ import cors from 'cors';
 import Chat from './models/chat.js';
 import userChats from './models/userChats.js';
 import dotenv from "dotenv";
-
+connect();
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -17,14 +17,14 @@ dotenv.config();
 
 app.use(express.json());
 
-const connect = async()=>{
-     try{
-          await mongoose.connect(process.env.MONGO)
-          console.log("Connected to MongoDb");
-     }catch(err){
-          console.log(err);
+const connect = async () => {
+     try {
+       await mongoose.connect(process.env.MONGO);
+       console.log("Connected to MongoDB");
+     } catch (err) {
+       console.log(err);
      }
-}
+   };
 
 const imagekit = new ImageKit({
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY,

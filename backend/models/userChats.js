@@ -8,7 +8,7 @@ const userChatsSchema = new mongoose.Schema(
     },
     chats: [
       {
-        _id: {
+        _Id: {
           type: String,
           required: true,
         },
