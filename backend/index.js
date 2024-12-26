@@ -4,7 +4,7 @@ import cors from 'cors';
 import Chat from './models/chat.js';
 import userChats from './models/userChats.js';
 import dotenv from "dotenv";
-connect();
+import mongoose from "mongoose";
 
 const port = process.env.PORT || 3000;
 const app = express();
@@ -13,7 +13,7 @@ dotenv.config();
 
  app.use(cors({
       origin: process.env.CLIENT_URL,
-}))
+     }))
 
 app.use(express.json());
 
@@ -24,7 +24,8 @@ const connect = async () => {
      } catch (err) {
        console.log(err);
      }
-   };
+};
+connect();
 
 const imagekit = new ImageKit({
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
