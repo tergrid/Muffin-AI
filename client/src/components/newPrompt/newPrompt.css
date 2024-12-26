@@ -24,6 +24,9 @@
         button, label{
             border-radius: 50%;
             background-color: #704b3b;
+            &:hover{
+                background-color: beige
+            }
             border: none;
             padding: 10px;
             display: flex;
