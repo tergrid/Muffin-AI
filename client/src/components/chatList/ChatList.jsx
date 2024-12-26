@@ -7,6 +7,9 @@ const ChatList = () => {
         queryFn: () =>
             fetch(`${import.meta.env.VITE_API_URL}/api/userchats`, {
                 credentials: "include",
+                headers: {
+                    'Authorization': `Bearer ${clerkToken}`
+                }
             }).then((res) =>
                 res.json()),
     });
@@ -20,15 +23,15 @@ const ChatList = () => {
             <hr />
             <span><div className="title">recent chat</div></span>
             <div className="list">
-                {isPending 
-                    ? "Loading..." 
-                    : error 
-                    ? "Something went wrong" 
-                    : data?.map((chat) => (
-                    <Link to={`/dashboard/chats/${chat._id}`} key={chat._id}>
-                        my chat title
-                    </Link>
-                ))}
+                {isPending
+                    ? "Loading..."
+                    : error
+                        ? "Something went wrong"
+                        : data?.map((chat) => (
+                            <Link to={`/dashboard/chats/${chat._id}`} key={chat._id}>
+                                {chat.title || 'Untitled Chat'}
+                            </Link>
+                        ))}
             </div>
             <hr />
             <div className="upgrade">
