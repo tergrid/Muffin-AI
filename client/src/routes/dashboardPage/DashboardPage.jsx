@@ -6,7 +6,7 @@ const DashboardPage = () => {
     e.preventDefault();
     const text = e.target.text.value;
     if(!text) return;
-    await fetch("http://localhost:3000/api/chats",{
+    await fetch("http://localhost:8080/api/chats",{
       method:"POST",
       headers:{
         "Content-Type":"application/json"

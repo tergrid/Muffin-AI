@@ -13,6 +13,7 @@
     "@clerk/clerk-react": "^5.20.2",
     "@clerk/react-router": "^0.1.1",
     "@google/generative-ai": "^0.21.0",
+    "@tanstack/react-query": "^5.62.10",
     "imagekitio-react": "^4.2.0",
     "react": "19.0.0-rc-8b08e99e-20240713",
     "react-dom": "19.0.0-rc-8b08e99e-20240713",

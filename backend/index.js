@@ -2,21 +2,24 @@ import express from "express";
 import ImageKit from "imagekit";
 import cors from 'cors';
 import Chat from './models/chat.js';
-import userChats from './models/userChats.js';
+import userChats from "./models/userChats.js";
+//import userChats from './models/userChats.js';
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { ClerkExpressWithAuth } from '@clerk/express';
+import { requireAuth } from '@clerk/express';
 
 
-const port = process.env.PORT || 3000;
+
+const port = process.env.PORT || 8080;
+
 const app = express();
 
 dotenv.config();
 
- app.use(cors({
-      origin: process.env.CLIENT_URL,
-      credentials:true,
-     }))
+app.use(cors({
+     origin: 'http://localhost:8080',
+     credentials: true,
+   }));   
 
 app.use(express.json());
 
@@ -50,12 +53,22 @@ app.get("/api/upload",(req, res)=>{
      const result = imagekit.getAuthenticationParameters();
      res.send(result);
 })
-app.get("/api/test",ClerkExpressWithAuth(),(req, res)=>{
+// app.get("/api/test",requireAuth(),(req, res)=>{
+//      const userId=req.auth.userId;
+//      console.log("Success");
+//      res.send("Success");
+// })
+app.get("/api/userchats",requireAuth(),async(req, res)=>{
      const userId=req.auth.userId;
-     console.log("Success");
-     res.send("Success");
-})
-app.post("/api/chats",ClerkExpressWithAuth(),async(req, res)=>{
+     try{
+          const userChats = await userChats.find({userId:userId});
+          res.status(200).send(userChats[0].chats);
+     }catch(err){
+          console.log(err);
+          res.status(500).send("Error fetching chat!")
+     }
+});
+app.post("/api/chats",requireAuth(),async(req, res)=>{
      const {userId, text} = req.body;
 
      try{
