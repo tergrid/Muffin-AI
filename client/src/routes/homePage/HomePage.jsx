@@ -10,7 +10,11 @@ const HomePage = () => {
     <div className='homePage'>
       <img src="./orbital-3.png" alt="" className='orbital' />
       <div className="left">
-        <h1 className='muffinTitle'>muffin<h1 className='dot'>.</h1><h1 className='letter-a'>a</h1><h1 className='letter-i'>i</h1></h1>
+        <h1 className='muffinTitle'>muffin
+          <h2 className='dot'>.</h2>
+          <h2 className='letter-a'>a</h2>
+          <h2 className='letter-i'>i</h2>
+        </h1>
         <h2>enhance your knowledge with an online buddy</h2>
         <h3>have a personalized experience with the brand new muffinbot, an online helper who can zip-zap anything.</h3>
         <Link to='/dashboard'>Get Started</Link>

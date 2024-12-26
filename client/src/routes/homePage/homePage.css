@@ -24,15 +24,6 @@
             font-size: 96px;
             background-color: #3d1d17;
             display: flex;
-            .dot{
-                background-color: #417e81;
-            }
-            .letter-a{
-                background-color: #cc241d;
-            }
-            .letter-i{
-                background-color: #cd921f;
-            }
             /* background: linear-gradient(to right, #cc241d, #d49721); */
             background-clip: text;
             -webkit-background-clip: text;
@@ -43,6 +34,19 @@
 
             }
             
+        }
+
+        h2.dot{
+            color: #417e81;
+            font-size: 96px;
+        }
+        h2.letter-a{
+            color: #cc241d;
+            font-size: 96px;
+        }
+        h2.letter-i{
+            color: #cd921f;
+            font-size: 96px;
         }
 
         h3 {
