@@ -5,7 +5,7 @@ import { IKImage } from 'imagekitio-react';
 import model from '../../lib/gemini.js';
 import Markdown from 'react-markdown'; 
 
-const NewPrompt = () => {
+const NewPrompt = ({data}) => {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [img, setImg] = useState({
@@ -29,15 +29,52 @@ const NewPrompt = () => {
   });
 
   const endRef = useRef(null);
+  const formRef = useRef(null);
 
   // Smooth scroll to the bottom of the chat container
   useEffect(() => {
     if (endRef.current) {
       endRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [question, answer, img.dbData]);
+  }, [data, question, answer, img.dbData]);
 
-  const add = async (text) => {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: () => {
+      return fetch(`${import.meta.env.VITE_API_URL}/api/chats${data._id}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ question: question.length ? question : undefined,
+          answer,
+          img: img.dbData.filePath ? img.dbData : undefined
+        }),
+      }).then((res) => res.json());
+    },
+    onSuccess: (id) => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ["chat",data._id] }).then(() => {;
+      formRef.current.reset();
+      setQuestion("")
+      setAnswer("")
+      setImg({
+        isLoading: false,
+        error: '',
+        dbData: {},
+        aiData: {},
+      });
+    });
+  },
+  onError: (err) => {
+    console.log(err);
+  },
+});
+
+  const add = async (text, isInital) => {
+    if(!isInitial) setQuestion(text);
+    
     try {
       const result = await chat.sendMessageStream(Object.entries(img.aiData).length ? [img.aiData, text] : [text]);
 
@@ -55,6 +92,7 @@ const NewPrompt = () => {
           dbData: {},
           aiData: {},
         })
+        mutation.mutate(); 
       } else {
         console.error('Unexpected response from model.generateContent');
       }
@@ -68,8 +106,20 @@ const NewPrompt = () => {
     const text = e.target.text.value;
     if(!text) return;
 
-    add(text);
+    add(text, false);
   };
+
+  // IN PRODUCTION WE DONT NEED IT
+  const hasRun = useRef(false);
+
+  useEffect(() => { 
+    if(!hasRun.current){
+      if(data?.history?.length === 1){
+        add(data.history[0].parts[0].text, true);
+      }
+    }
+      hasRun.current = true;
+  }, [])
 
   return (
     <>
@@ -85,7 +135,7 @@ const NewPrompt = () => {
       {question && <div className="message user">{question}</div>}
       {answer && <div className="message"><Markdown>{answer}</Markdown></div>}
       <div className="endChat">
-        <form className="newForm" onSubmit={handleSubmit}>
+        <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
           <Upload setImg={setImg} />
           <input
             id="file"

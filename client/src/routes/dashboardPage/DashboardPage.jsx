@@ -1,44 +1,60 @@
-import './dashboardPage.css'
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import "./dashboardPage.css";
+import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
+  const queryClient = useQueryClient();
 
-  const handleSubmit = async(e) => {
+  const navigate = useNavigate();
+
+  const mutation = useMutation({
+    mutationFn: (text) => {
+      return fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      }).then((res) => res.json());
+    },
+    onSuccess: (id) => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ["userChats"] });
+      navigate(`/dashboard/chats/${id}`);
+    },
+  });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const text = e.target.text.value;
-    if(!text) return;
-    await fetch("http://localhost:8080/api/chats",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json"
-      },
-      body:JSON.stringify({text})
-    })
-  }
+    if (!text) return;
 
+    mutation.mutate(text);
+  };
   return (
-    <div className='dashboardPage'>
+    <div className="dashboardPage">
       <div className="texts">
         <div className="logo">
           <span>muffin</span>
-          {/* <h1>muffin ai</h1> */}
         </div>
         <div className="options">
           <div className="option">
             <img src="/chat.png" alt="" />
-            <span>create a new chat</span>
+            <span>Create a New Chat</span>
           </div>
           <div className="option">
             <img src="/image.png" alt="" />
-            <span>Analyze Image</span>
+            <span>Analyze Images</span>
           </div>
           <div className="option">
             <img src="/code.png" alt="" />
-            <span>Help me with my code</span>
+            <span>Help me with my Code</span>
           </div>
         </div>
       </div>
       <div className="formContainer">
-        <form action="" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <input type="text" name="text" placeholder="Ask me anything..." />
           <button>
             <img src="/arrow.png" alt="" />
@@ -46,7 +62,7 @@ const DashboardPage = () => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DashboardPage
+export default DashboardPage;
