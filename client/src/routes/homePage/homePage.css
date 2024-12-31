@@ -39,14 +39,26 @@
         h2.dot{
             color: #417e81;
             font-size: 96px;
+            @media screen and (max-width: 1280px){
+                font-size: 64px;
+
+            }
         }
         h2.letter-a{
             color: #cc241d;
             font-size: 96px;
+            @media screen and (max-width: 1280px){
+                font-size: 64px;
+
+            }
         }
         h2.letter-i{
             color: #cd921f;
             font-size: 96px;
+            @media screen and (max-width: 1280px){
+                font-size: 64px;
+
+            }
         }
 
         h3 {

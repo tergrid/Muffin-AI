@@ -34,7 +34,7 @@ const connect = async () => {
        console.log(err);
      }
 };
-connect();
+
 
 const imagekit = new ImageKit({
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
@@ -49,49 +49,35 @@ app.get("/api/upload",(req, res)=>{
      const result = imagekit.getAuthenticationParameters();
      res.send(result);
 })
-
-app.get("/api/userchats",requireAuth(),async(req, res)=>{
+app.get("/api/userchats", requireAuth(), async (req, res) => {
+     const userId = req.auth.userId;
+     try {
+       const userChats = await UserChats.find({ userId });
+       console.log("Fetched user chats:", userChats);
+       if (userChats.length > 0) {
+         res.status(200).send(userChats[0].chats);
+       } else {
+         res.status(200).send([]);
+       }
+     } catch (err) {
+       console.log("Error fetching user chats:", err);
+       res.status(500).send("Error fetching userchats!");
+     }
+   });
+app.get("/api/chats/:id",requireAuth(),async(req, res)=>{
      const userId=req.auth.userId;
      try{
-          const UserChats = await UserChats.find({userId:userId});
-          res.status(200).send(UserChats[0].chats);
+          const chat = await Chat.findOne({_id: req.params.id, userId});
+          //console.log(UserChats);
+          res.status(200).send(chat);
      }catch(err){
           console.log(err);
           res.status(500).send("Error fetching chat!")
      }
 });
-app.post("/api/chats", requireAuth(), async(req, res) => {
-  const userId = req.auth.userId;
-  const { text } = req.body;
-  
-  try {
-    const newChat = await Chat.create({
-      userId,
-      history: [{role: "user", parts: [{text}]}]
-    });
-
-    await UserChat.findOneAndUpdate(
-      { userId },
-      { 
-        $push: {
-          chats: {
-            _id: newChat._id,
-            title: text.substring(0, 40)
-          }
-        }
-      },
-      { upsert: true }
-    );
-
-    res.status(201).json(newChat._id);
-  } catch(err) {
-    res.status(500).json("Error creating chat");
-  }
-});
 
 app.post("/api/chats",requireAuth(),async(req, res)=>{
      const {userId, text} = req.body;
-
      try{
           // CREATE A NEW CHAT     
           const newChat = new Chat({
@@ -109,7 +95,6 @@ app.post("/api/chats",requireAuth(),async(req, res)=>{
                     {
                          _id: savedChat.id,
                          title: text.substring(0,40),
-
                     },
                ],
           });
@@ -124,7 +109,6 @@ app.post("/api/chats",requireAuth(),async(req, res)=>{
                     }
                }
           })
-
           res.status(201).send(newChat._id);
      }
      }catch(err){
@@ -139,5 +123,6 @@ app.use((err, req, res, next)=>{
 })
 
 app.listen(port,()=>{
-    console.log(`Server Running on port - ${port}`);
+     connect();
+     console.log(`Server Running on port - ${port}`);
 })
