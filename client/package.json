@@ -14,6 +14,7 @@
     "@clerk/react-router": "^0.1.1",
     "@google/generative-ai": "^0.21.0",
     "@tanstack/react-query": "^5.62.10",
+    "groq-sdk": "^0.12.0",
     "imagekitio-react": "^4.2.0",
     "react": "19.0.0-rc-8b08e99e-20240713",
     "react-dom": "19.0.0-rc-8b08e99e-20240713",

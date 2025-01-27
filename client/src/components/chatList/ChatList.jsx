@@ -14,16 +14,20 @@ const ChatList = () => {
            'Authorization': `Bearer ${clerkToken}`
          }
        }).then((res) => {
-         if (!res.ok) {
-           throw new Error('Network response was not ok');
-         }
-         return res.json();
+        console.log("Raw Response:", res); // Debug log
+        return res.json();
+      })
+      .then((json) => {
+        console.log("Parsed JSON:", json); // Debug log
+        return json;
        }),})
    if (error) {
      console.error("Error fetching chats:", error);
    } else {
      console.log("Fetched chats data:", data);
    }
+
+   
 
   return (
     <div className='chatList'>

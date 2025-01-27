@@ -1,27 +1,27 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import "./dashboardPage.css";
-import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import './dashboardPage.css';
+import { useNavigate } from 'react-router-dom';
 
 const DashboardPage = () => {
   const queryClient = useQueryClient();
-
   const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: (text) => {
-      return fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
-        method: "POST",
-        credentials: "include",
+    mutationFn: (text) =>
+      fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
+        method: 'POST',
+        credentials: 'include',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ text }),
-      }).then((res) => res.json());
+      }).then((res) => res.json()),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['userChats'] });
+      navigate(`/dashboard/chats/${data.id}`);
     },
-    onSuccess: (id) => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["userChats"] });
-      navigate(`/dashboard/chats/${id}`);
+    onError: (err) => {
+      console.error('Error creating chat:', err);
     },
   });
 
@@ -32,6 +32,7 @@ const DashboardPage = () => {
 
     mutation.mutate(text);
   };
+
   return (
     <div className="dashboardPage">
       <div className="texts">
@@ -57,7 +58,7 @@ const DashboardPage = () => {
         <form onSubmit={handleSubmit}>
           <input type="text" name="text" placeholder="Ask me anything..." />
           <button>
-            <img src="/arrow.png" alt="" />
+            <img src="/arrow.png" alt="Submit" />
           </button>
         </form>
       </div>

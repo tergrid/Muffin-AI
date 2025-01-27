@@ -2,12 +2,12 @@ import './newPrompt.css';
 import Upload from '../upload/Upload.jsx';
 import { useState, useRef, useEffect } from 'react';
 import { IKImage } from 'imagekitio-react';
-import model from '../../lib/gemini.js';
-import Markdown from 'react-markdown'; 
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Markdown from 'react-markdown'; // Retain Markdown parsing
 
-const NewPrompt = ({data}) => {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+const NewPrompt = ({ data }) => {
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
   const [img, setImg] = useState({
     isLoading: false,
     error: '',
@@ -15,21 +15,65 @@ const NewPrompt = ({data}) => {
     aiData: {},
   });
 
-  const chat = model.startChat({
-    history: [
-      {
-        role: "user",
-        parts: [{ text: "Hello" }],
-      },
-      {
-        role: "model",
-        parts: [{ text: "Great to meet you. What would you like to know?" }],
-      },
-    ],
-  });
+  const chat = data.history || []; // Preserve existing chat history initialization
 
   const endRef = useRef(null);
   const formRef = useRef(null);
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      fetch(`${import.meta.env.VITE_API_URL}/api/chats/${data._id}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question,
+          answer,
+          img: img.dbData.filePath ? img.dbData : undefined,
+        }),
+      }).then((res) => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat', data._id] });
+      formRef.current.reset();
+      setQuestion('');
+      setAnswer('');
+      setImg({ isLoading: false, error: '', dbData: {}, aiData: {} });
+    },
+    onError: (err) => {
+      console.error('Error updating chat:', err);
+    },
+  });
+
+  const add = async (text) => {
+    setQuestion(text);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+      });
+      const result = await response.json();
+      setAnswer(result.completion || '');
+    } catch (error) {
+      console.error('Error fetching response:', error);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const text = e.target.text.value;
+    if (!text) return;
+
+    add(text);
+  };
 
   // Smooth scroll to the bottom of the chat container
   useEffect(() => {
@@ -38,92 +82,8 @@ const NewPrompt = ({data}) => {
     }
   }, [data, question, answer, img.dbData]);
 
-  const queryClient = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: () => {
-      return fetch(`${import.meta.env.VITE_API_URL}/api/chats${data._id}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ question: question.length ? question : undefined,
-          answer,
-          img: img.dbData.filePath ? img.dbData : undefined
-        }),
-      }).then((res) => res.json());
-    },
-    onSuccess: (id) => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ["chat",data._id] }).then(() => {;
-      formRef.current.reset();
-      setQuestion("")
-      setAnswer("")
-      setImg({
-        isLoading: false,
-        error: '',
-        dbData: {},
-        aiData: {},
-      });
-    });
-  },
-  onError: (err) => {
-    console.log(err);
-  },
-});
-
-  const add = async (text, isInital) => {
-    if(!isInitial) setQuestion(text);
-    
-    try {
-      const result = await chat.sendMessageStream(Object.entries(img.aiData).length ? [img.aiData, text] : [text]);
-
-      if (result && result.response) {
-        let accumulatedText = "";
-        for await (const chunk of result.stream){
-          const chunkText = chunk.text();
-          console.log(chunkText);
-          accumulatedText+=chunkText;
-          setAnswer(accumulatedText);
-        }
-        setImg({
-          isLoading: false,
-          error: '',
-          dbData: {},
-          aiData: {},
-        })
-        mutation.mutate(); 
-      } else {
-        console.error('Unexpected response from model.generateContent');
-      }
-    } catch (error) {
-      console.error('Error generating content:', error);
-    }
-  };
-
-  const handleSubmit = async(e) => {
-    e.preventDefault(); // Prevent form refresh
-    const text = e.target.text.value;
-    if(!text) return;
-
-    add(text, false);
-  };
-
-  // IN PRODUCTION WE DONT NEED IT
-  const hasRun = useRef(false);
-
-  useEffect(() => { 
-    if(!hasRun.current){
-      if(data?.history?.length === 1){
-        add(data.history[0].parts[0].text, true);
-      }
-    }
-      hasRun.current = true;
-  }, [])
-
   return (
     <>
-      {/* Add New Chat */}
       {img.isLoading && <div>Loading...</div>}
       {img.dbData?.filePath && (
         <IKImage
@@ -138,23 +98,17 @@ const NewPrompt = ({data}) => {
         <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
           <Upload setImg={setImg} />
           <input
-            id="file"
-            type="file"
-            multiple={false}
-            hidden
-          />
-          <input
             type="text"
             name="text"
             placeholder="Ask Anything..."
             value={question}
-            onChange={(e) => setQuestion(e.target.value)} // Update question state
+            onChange={(e) => setQuestion(e.target.value)}
           />
           <button type="submit">
             <img src="/arrow.png" alt="Submit" />
           </button>
         </form>
-        <div ref={endRef}></div> {/* Ensure this is visible */}
+        <div ref={endRef}></div>
       </div>
     </>
   );
