@@ -1,9 +1,9 @@
-.chatList{
+.chatList {
     display: flex;
     flex-direction: column;
     height: 100%;
 
-    hr{
+    hr {
         border: none;
         height: 2px;
         background-color: #ddd;
@@ -12,30 +12,44 @@
         margin: 20px 0px;
     }
 
-    .title{
+    .title {
         font-weight: 600;
         font-size: 14px;
         margin-bottom: 10px;
     }
 
-    .links{
+    .links {
         display: flex;
         flex-direction: column;
         overflow: scroll;
-        color:black;
+        color: black;
     }
 
-    a{
+    /* ✅ Ensure chat items are displayed as a vertical list */
+    .list {
+        display: flex;
+        flex-direction: column; /* ✅ Ensures items are stacked vertically */
+        gap: 10px; /* ✅ Keeps spacing between chat entries */
+    }
+
+    /* ✅ Ensure each chat item takes up full width while keeping original colors */
+    .list a {
+        display: block; /* ✅ Each chat is a block element */
         padding: 10px;
         border-radius: 10px;
         font-size: 16px;
-        &:hover{
-            background-color: #704b3b;
-            color: beige;
-        }
+        text-decoration: none;
+        background-color: inherit; /* ✅ Keeps original background */
+        color: inherit; /* ✅ Keeps original text color */
+        transition: background 0.2s ease-in-out;
     }
 
-    .upgrade{
+    .list a:hover {
+        background-color: #704b3b; /* ✅ Retains your hover effect */
+        color: beige;
+    }
+
+    .upgrade {
         margin-top: auto;
         display: flex;
         align-items: center;
@@ -43,21 +57,21 @@
         font-size: 12px;
     }
 
-    .imgupgrade{
+    .imgupgrade {
         width: 24px;
         height: 24px;
     }
 
-    .texts{
+    .texts {
         display: flex;
         flex-direction: column;
 
-        span{
-            &:first-child{
+        span {
+            &:first-child {
                 font-weight: 600;
             }
-            &:last-child{
-                color: #888 
+            &:last-child {
+                color: #888;
             }
         }
     }

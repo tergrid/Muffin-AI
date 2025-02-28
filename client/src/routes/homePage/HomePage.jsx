@@ -23,24 +23,24 @@ const HomePage = () => {
         <div className="imgContainer">
           <img src="/muffinbot2.png" alt="" className='bot' />
           <div className="chat">
-            <img src={typingStatus === "Human-1" ? "/human1.jpeg" : typingStatus === 'Human-2' ? "/human2.jpeg" : "/muffinbot2.png"}alt="" className='chatImage'/>
+            <img src={typingStatus === "Human-1" ? "/human1.jpeg" : typingStatus === 'Human-2' ? "/human2.jpeg" : "/muffinbot2.png"} alt="" className='chatImage' />
             <TypeAnimation
               sequence={[
                 // Same substring at the start will only be typed out once, initially
-                'Human:We produce food for Mice',
-                2000, ()=>{
+                'Human: What is the capital of India',
+                2000, () => {
                   setTypingStatus('Bot')
                 },
-                'Bot:We produce food for Hamsters',
-                2000, ()=>{
+                'Bot:It is New Delhi',
+                2000, () => {
                   setTypingStatus('Human-2')
                 },
-                'Human:We produce food for Guinea Pigs',
-                2000, ()=>{
+                'Human:What is the CSS property to change elevation',
+                2000, () => {
                   setTypingStatus('Bot')
                 },
-                'Bot:We produce food for Chinchillas',
-                2000, ()=>{
+                'Bot:Z-index is used for changing the elevation',
+                2000, () => {
                   setTypingStatus('Human-1')
                 }
               ]}

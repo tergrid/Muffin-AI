@@ -1,24 +1,50 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './chatPage.css';
 import NewPrompt from '../../components/newPrompt/NewPrompt.jsx';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IKImage } from 'imagekitio-react';
 import Markdown from 'react-markdown';
+import { useLocation } from "react-router-dom";
 
 const ChatPage = () => {
   const path = useLocation().pathname;
   const chatId = path.split('/').pop();
 
+  const queryClient = useQueryClient();
+  const endRef = useRef(null);
+  const [message, setMessage] = useState("");
+
+  // ✅ Fetch chat history
   const { isLoading, error, data } = useQuery({
     queryKey: ['chat', chatId],
-    queryFn: () =>
-      fetch(`${import.meta.env.VITE_API_URL}/api/chats/${chatId}`, {
+    queryFn: async () => {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${chatId}`, {
         credentials: 'include',
-      }).then((res) => res.json()),
+      });
+      return res.json();
+    },
   });
 
-  const endRef = useRef(null);
+  // ✅ Mutation for sending messages
+  const sendMessage = useMutation({
+    mutationFn: async (newMessage) => {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${chatId}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ question: newMessage }),
+      });
+      return res.json();
+    },
+    onSuccess: (updatedChat) => {
+      queryClient.setQueryData(['chat', chatId], updatedChat); // ✅ Update chat state instantly
+      setMessage(""); // ✅ Clear input field
+    },
+  });
 
+  // ✅ Auto-scroll to the latest message
   useEffect(() => {
     if (endRef.current) {
       endRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -46,9 +72,7 @@ const ChatPage = () => {
                   />
                 )}
                 <div
-                  className={`message ${
-                    message.role === 'user' ? 'user' : ''
-                  }`}
+                  className={`message ${message.role === 'user' ? 'user' : ''}`}
                 >
                   <Markdown>{message.parts[0].text}</Markdown>
                 </div>
