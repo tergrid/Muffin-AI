@@ -4,7 +4,7 @@ import Chat from "./models/chat.js";
 import UserChats from "./models/userChats.js";
 import mongoose from "mongoose";
 import { requireAuth } from "@clerk/express";
-import Groq from "groq-sdk";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import dotenv from "dotenv";
 import cors from "cors";
 
@@ -13,7 +13,28 @@ const port = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
 
-app.use((req, res, next) => {
+// Set up CORS and other middleware (keep your existing code)
+// ...
+
+// Initialize Google Generative AI
+console.log("GOOGLE_GEMINI_API_KEY:", process.env.GOOGLE_GEMINI_API_KEY ? "Set" : "Not Set");
+
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-1.5-pro",
+  safetySettings: [
+    {
+      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    },
+    {
+      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    },
+  ]
+});
+
+  app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -36,10 +57,6 @@ app.use(
   })
 );
 app.options("*", cors());
-
-console.log("GROQ_API_KEY:", process.env.GROQ_API_KEY);
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const connect = async () => {
   try {
@@ -65,12 +82,11 @@ app.get("/api/upload", (req, res) => {
   res.send(result);
 });
 
-// ✅ FIXED: Ensure `userId` is always retrieved from Clerk
 app.get("/api/userchats", requireAuth(), async (req, res) => {
   const userId = req.auth?.userId;
 
   if (!userId) {
-    console.warn("⚠️ Unauthorized access attempt - Missing userId");
+    console.warn("Unauthorized access attempt - Missing userId");
     return res
       .status(401)
       .json({ error: "Unauthorized: No valid session token." });
@@ -78,10 +94,10 @@ app.get("/api/userchats", requireAuth(), async (req, res) => {
 
   try {
     const userChats = await UserChats.find({ userId });
-    console.log(`✅ Fetched user chats for userId: ${userId}`, userChats);
+    console.log(`Fetched user chats for userId: ${userId}`, userChats);
     res.status(200).json(userChats.length > 0 ? userChats[0].chats : []);
   } catch (err) {
-    console.error("❌ Error fetching user chats:", err);
+    console.error("Error fetching user chats:", err);
     res.status(500).json({ error: "Error fetching user chats!" });
   }
 });
@@ -94,25 +110,25 @@ app.get("/api/chats/:id", requireAuth(), async (req, res) => {
   }
 
   try {
-    console.log("Fetching chat with ID:", req.params.id); // ✅ Debugging Log
+    console.log("Fetching chat with ID:", req.params.id); // Debugging Log
 
     const chat = await Chat.findOne({ _id: req.params.id, userId });
 
     if (!chat) {
-      console.log(`❌ Chat not found for ID: ${req.params.id}`);
+      console.log(`Chat not found for ID: ${req.params.id}`);
       return res.status(404).json({ error: "Chat not found" });
     }
 
-    console.log("✅ Found chat:", chat);
+    console.log("Found chat:", chat);
     res.status(200).json(chat);
   } catch (err) {
-    console.error("❌ Error fetching chat:", err);
+    console.error("Error fetching chat:", err);
     res.status(500).json({ error: "Error fetching chat!" });
   }
 });
-// ✅ FIXED: Prevent `userId` missing error when creating a chat
+// FIXED: Prevent `userId` missing error when creating a chat
 app.post("/api/chats", requireAuth(), async (req, res) => {
-  const userId = req.auth?.userId; // ✅ Extract userId from Clerk authentication
+  const userId = req.auth?.userId;
   const { text } = req.body;
 
   if (!userId) {
@@ -149,16 +165,16 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
       );
     }
 
-    // ✅ Groq SDK call (Ensure error handling)
+    // Gemini API call
     let completion = "";
     try {
-      const groqResponse = await groq.chat.completions.create({
-        messages: [{ role: "user", content: text }],
-        model: "llama-3.3-70b-versatile",
-      });
-      completion = groqResponse.choices[0]?.message?.content || "";
-    } catch (groqErr) {
-      console.error("❌ Groq API Error:", groqErr);
+      console.log("Calling Gemini API with text:", text);
+      const result = await model.generateContent(text);
+      const response = await result.response;
+      completion = response.text();
+      console.log("Extracted completion:", completion);
+    } catch (geminiErr) {
+      console.error("❌ Gemini API Error:", geminiErr);
     }
 
     res.status(201).json({ id: savedChat.id, completion });
@@ -168,41 +184,97 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
   }
 });
 
+// Also update the PUT endpoint to update chats with new Gemini responses
 app.put("/api/chats/:id", requireAuth(), async (req, res) => {
   const userId = req.auth?.userId;
-  const { question, answer, img } = req.body;
+  const { question, img } = req.body;
 
   if (!userId) {
     console.warn("⚠️ Unauthorized attempt to update chat - Missing userId");
     return res.status(401).json({ error: "Unauthorized: userId is missing" });
   }
 
-  const newItems = [
-    ...(question
-      ? [{ role: "user", parts: [{ text: question }], ...(img && { img }) }]
-      : []),
-    { role: "model", parts: [{ text: answer }] },
-  ];
-
   try {
+    // Get Gemini response if there's a question
+    let answer = "";
+    if (question) {
+      try {
+        // If there's an image, process it with Gemini's multimodal capabilities
+        if (img && img.aiData && img.aiData.inlineData) {
+          const { data, mimeType } = img.aiData.inlineData;
+          const imageData = {
+            inlineData: {
+              data,
+              mimeType
+            }
+          };
+          
+          const result = await model.generateContent([question, imageData]);
+          answer = result.response.text();
+        } else {
+          // Text-only prompt
+          const result = await model.generateContent(question);
+          answer = result.response.text();
+        }
+      } catch (geminiErr) {
+        console.error("❌ Gemini API Error:", geminiErr);
+        answer = "Sorry, I couldn't process that request.";
+      }
+    }
+
+    const newItems = [
+      ...(question
+        ? [{ role: "user", parts: [{ text: question }], ...(img && { img: img.dbData.filePath }) }]
+        : []),
+      { role: "model", parts: [{ text: answer }] },
+    ];
+
     const updatedChat = await Chat.updateOne(
       { _id: req.params.id, userId },
       { $push: { history: { $each: newItems } } }
     );
-    res.status(200).json(updatedChat);
+    res.status(200).json({ ...updatedChat, answer });
   } catch (err) {
     console.error("❌ Error updating chat:", err);
     res.status(500).json({ error: "Error updating chat!" });
   }
 });
+app.delete("/api/chats/:id", requireAuth(), async (req, res) => {
+  const userId = req.auth?.userId;
 
-// ✅ Authentication error handling
+  if (!userId) {
+    console.warn("⚠️ Unauthorized attempt to delete chat - Missing userId");
+    return res.status(401).json({ error: "Unauthorized: userId is missing" });
+  }
+
+  try {
+    // First, delete the chat document
+    const deletedChat = await Chat.findOneAndDelete({ _id: req.params.id, userId });
+    
+    if (!deletedChat) {
+      return res.status(404).json({ error: "Chat not found or you don't have permission to delete it" });
+    }
+    
+    // Then, remove the chat from the user's chat list
+    await UserChats.updateOne(
+      { userId },
+      { $pull: { chats: { _id: req.params.id } } }
+    );
+    
+    console.log(`✅ Deleted chat with ID: ${req.params.id}`);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("❌ Error deleting chat:", err);
+    res.status(500).json({ error: "Error deleting chat!" });
+  }
+});
+// Authentication error handling
 app.use((err, req, res, next) => {
-  console.error("❌ Unauthenticated request:", err.stack);
+  console.error("Unauthenticated request:", err.stack);
   res.status(401).json({ error: "Unauthenticated" });
 });
 
 app.listen(port, () => {
   connect();
-  console.log(`🚀 Server Running on port ${port}`);
+  console.log(`Server Running on port ${port}`);
 });

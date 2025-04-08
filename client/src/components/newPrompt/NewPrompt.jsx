@@ -3,7 +3,7 @@ import Upload from '../upload/Upload.jsx';
 import { useState, useRef, useEffect } from 'react';
 import { IKImage } from 'imagekitio-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Markdown from 'react-markdown'; // Retain Markdown parsing
+import Markdown from 'react-markdown';
 
 const NewPrompt = ({ data }) => {
   const [question, setQuestion] = useState('');
@@ -15,13 +15,11 @@ const NewPrompt = ({ data }) => {
     aiData: {},
   });
 
-  const chat = data.history || []; // Preserve existing chat history initialization
-
   const endRef = useRef(null);
   const formRef = useRef(null);
-
   const queryClient = useQueryClient();
 
+  // Mutation for updating an existing chat
   const mutation = useMutation({
     mutationFn: () =>
       fetch(`${import.meta.env.VITE_API_URL}/api/chats/${data._id}`, {
@@ -32,15 +30,18 @@ const NewPrompt = ({ data }) => {
         },
         body: JSON.stringify({
           question,
-          answer,
           img: img.dbData.filePath ? img.dbData : undefined,
         }),
       }).then((res) => res.json()),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // If the response contains an answer, update it locally
+      if (data.answer) {
+        setAnswer(data.answer);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['chat', data._id] });
       formRef.current.reset();
       setQuestion('');
-      setAnswer('');
       setImg({ isLoading: false, error: '', dbData: {}, aiData: {} });
     },
     onError: (err) => {
@@ -48,31 +49,41 @@ const NewPrompt = ({ data }) => {
     },
   });
 
-  const add = async (text) => {
-    setQuestion(text);
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text }),
-      });
-      const result = await response.json();
-      setAnswer(result.completion || '');
-    } catch (error) {
-      console.error('Error fetching response:', error);
-    }
-  };
-
+  // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     const text = e.target.text.value;
     if (!text) return;
 
-    add(text);
+    setQuestion(text);
+    
+    // If we already have a chat ID, use the mutation to update it
+    if (data._id) {
+      mutation.mutate();
+    } else {
+      // Otherwise create a new chat
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chats`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log("API Response:", result);
+        setAnswer(result.completion || '');
+      } catch (error) {
+        console.error('Error fetching response:', error);
+        setAnswer("Sorry, there was an error processing your request.");
+      }
+    }
   };
 
   // Smooth scroll to the bottom of the chat container
@@ -101,8 +112,6 @@ const NewPrompt = ({ data }) => {
             type="text"
             name="text"
             placeholder="Ask Anything..."
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
           />
           <button type="submit">
             <img src="/arrow.png" alt="Submit" />

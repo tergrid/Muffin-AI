@@ -16,7 +16,7 @@ const HomePage = () => {
           <h2 className='letter-i'>i</h2>
         </h1>
         <h2>enhance your knowledge with an online buddy</h2>
-        <h3>have a personalized experience with the brand new muffinbot, an online helper who can zip-zap anything.</h3>
+        <h3>have a personalized experience with the brand new muffinbot, an online helper who is always by your side.</h3>
         <Link to='/dashboard'>Get Started</Link>
       </div>
       <div className="right">
@@ -31,7 +31,7 @@ const HomePage = () => {
                 2000, () => {
                   setTypingStatus('Bot')
                 },
-                'Bot:It is New Delhi',
+                'Bot:It is Delhi',
                 2000, () => {
                   setTypingStatus('Human-2')
                 },

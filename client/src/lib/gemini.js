@@ -1,26 +1,23 @@
-import { HarmBlockThreshold, HarmCategory } from "@google/generative-ai";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-// ...
+// client/src/lib/gemini.js
+import { HarmBlockThreshold, HarmCategory, GoogleGenerativeAI } from "@google/generative-ai";
 
 const safetySettings = [
   {
     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
   },
   {
     category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
   },
 ];
 
-const genAi = new GoogleGenerativeAI("AIzaSyD6ZXb1IXoJoiB2cESUutbSIqsWywmCwls");
-const model = genAi.getGenerativeModel({ model: "gemini-1.5-flash", safetySettings: safetySettings });
-
-const prompt = "Explain how AI works";
-
-const result = await model.generateContent(prompt);
-console.log(result.response.text());
-
+// Use environment variable - don't hardcode the API key
+const apiKey = import.meta.env.VITE_GOOGLE_GEMINI_API_KEY;
+const genAI = new GoogleGenerativeAI(apiKey);
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-1.5-pro", 
+  safetySettings 
+});
 
 export default model;

@@ -34,7 +34,7 @@
 
     /* ✅ Ensure each chat item takes up full width while keeping original colors */
     .list a {
-        display: block; /* ✅ Each chat is a block element */
+        display: flex; /* ✅ Each chat is a block element */
         padding: 10px;
         border-radius: 10px;
         font-size: 16px;
@@ -44,6 +44,19 @@
         transition: background 0.2s ease-in-out;
     }
 
+    .delete-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.6;
+      transition: opacity 0.2s ease;
+    ;}
+    
     .list a:hover {
         background-color: #704b3b; /* ✅ Retains your hover effect */
         color: beige;

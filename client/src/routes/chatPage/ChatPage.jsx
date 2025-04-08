@@ -12,7 +12,6 @@ const ChatPage = () => {
 
   const queryClient = useQueryClient();
   const endRef = useRef(null);
-  const [message, setMessage] = useState("");
 
   // ✅ Fetch chat history
   const { isLoading, error, data } = useQuery({
@@ -25,24 +24,39 @@ const ChatPage = () => {
     },
   });
 
-  // ✅ Mutation for sending messages
   const sendMessage = useMutation({
     mutationFn: async (newMessage) => {
+      setSending(true);
+
+      // ✅ Ensure correct chat ID is used
+      if (!chatId) {
+        console.error("Chat ID is missing!");
+        setSending(false);
+        return;
+      }
+
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${chatId}`, {
-        method: "PUT",
+        method: "PUT", // ✅ Ensuring existing chat is updated
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ question: newMessage }),
       });
+
+      if (!res.ok) {
+        throw new Error("Failed to send message");
+      }
+
       return res.json();
     },
     onSuccess: (updatedChat) => {
-      queryClient.setQueryData(['chat', chatId], updatedChat); // ✅ Update chat state instantly
-      setMessage(""); // ✅ Clear input field
+      queryClient.setQueryData(['chat', chatId], updatedChat); // ✅ Updates chat history
+      sendMessage(""); // ✅ Clears input field
+      setSending(false);
     },
   });
+
 
   // ✅ Auto-scroll to the latest message
   useEffect(() => {
@@ -71,9 +85,7 @@ const ChatPage = () => {
                     loading="lazy"
                   />
                 )}
-                <div
-                  className={`message ${message.role === 'user' ? 'user' : ''}`}
-                >
+                <div className={`message ${message.role === 'user' ? 'user' : 'assistant'}`}>
                   <Markdown>{message.parts[0].text}</Markdown>
                 </div>
               </div>
