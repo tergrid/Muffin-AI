@@ -13,10 +13,7 @@ const port = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
 
-// Set up CORS and other middleware (keep your existing code)
-// ...
-
-// Initialize Google Generative AI
+ 
 console.log("GOOGLE_GEMINI_API_KEY:", process.env.GOOGLE_GEMINI_API_KEY ? "Set" : "Not Set");
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);
@@ -130,28 +127,30 @@ app.get("/api/chats/:id", requireAuth(), async (req, res) => {
 app.post("/api/chats", requireAuth(), async (req, res) => {
   const userId = req.auth?.userId;
   const { text } = req.body;
-
+  
   if (!userId) {
-    console.warn("⚠️ Unauthorized attempt to create a chat - Missing userId");
+    console.warn("Unauthorized attempt to create a chat - Missing userId");
     return res.status(401).json({ error: "Unauthorized: userId is missing" });
   }
-
+  
   if (!text) {
     return res.status(400).json({ error: "Chat text is required" });
   }
-
+  
   try {
+    // Create initial chat with just the user message
     const newChat = new Chat({
       userId: userId,
       history: [{ role: "user", parts: [{ text }] }],
     });
     const savedChat = await newChat.save();
-
+    
+    // Update user's chat list
     const userChats = await UserChats.findOne({ userId });
     if (!userChats) {
       const newUserChats = new UserChats({
         userId: userId,
-        chats: [{ _id: savedChat.id, title: text.substring(0, 40) }],
+        chats: [{ _id: savedChat._id, title: text.substring(0, 40) }],
       });
       await newUserChats.save();
     } else {
@@ -164,7 +163,7 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
         }
       );
     }
-
+    
     // Gemini API call
     let completion = "";
     try {
@@ -173,13 +172,41 @@ app.post("/api/chats", requireAuth(), async (req, res) => {
       const response = await result.response;
       completion = response.text();
       console.log("Extracted completion:", completion);
+      
+      // Add the AI response to the chat history
+      await Chat.updateOne(
+        { _id: savedChat._id },
+        { 
+          $push: { 
+            history: { 
+              role: "model", 
+              parts: [{ text: completion }] 
+            } 
+          } 
+        }
+      );
+      
     } catch (geminiErr) {
-      console.error("❌ Gemini API Error:", geminiErr);
+      console.error("Gemini API Error:", geminiErr);
+      completion = "Sorry, I couldn't process that request.";
+      
+      // Still add an error response to the history
+      await Chat.updateOne(
+        { _id: savedChat._id },
+        { 
+          $push: { 
+            history: { 
+              role: "model", 
+              parts: [{ text: completion }] 
+            } 
+          } 
+        }
+      );
     }
-
-    res.status(201).json({ id: savedChat.id, completion });
+    
+    res.status(201).json({ id: savedChat._id, completion, text });
   } catch (err) {
-    console.error("❌ Error creating chat:", err);
+    console.error("Error creating chat:", err);
     res.status(500).json({ error: "Error creating chat!" });
   }
 });
@@ -190,7 +217,7 @@ app.put("/api/chats/:id", requireAuth(), async (req, res) => {
   const { question, img } = req.body;
 
   if (!userId) {
-    console.warn("⚠️ Unauthorized attempt to update chat - Missing userId");
+    console.warn("Unauthorized attempt to update chat - Missing userId");
     return res.status(401).json({ error: "Unauthorized: userId is missing" });
   }
 
@@ -217,7 +244,7 @@ app.put("/api/chats/:id", requireAuth(), async (req, res) => {
           answer = result.response.text();
         }
       } catch (geminiErr) {
-        console.error("❌ Gemini API Error:", geminiErr);
+        console.error("Gemini API Error:", geminiErr);
         answer = "Sorry, I couldn't process that request.";
       }
     }
@@ -235,7 +262,7 @@ app.put("/api/chats/:id", requireAuth(), async (req, res) => {
     );
     res.status(200).json({ ...updatedChat, answer });
   } catch (err) {
-    console.error("❌ Error updating chat:", err);
+    console.error("Error updating chat:", err);
     res.status(500).json({ error: "Error updating chat!" });
   }
 });
@@ -243,7 +270,7 @@ app.delete("/api/chats/:id", requireAuth(), async (req, res) => {
   const userId = req.auth?.userId;
 
   if (!userId) {
-    console.warn("⚠️ Unauthorized attempt to delete chat - Missing userId");
+    console.warn("Unauthorized attempt to delete chat - Missing userId");
     return res.status(401).json({ error: "Unauthorized: userId is missing" });
   }
 
@@ -261,10 +288,10 @@ app.delete("/api/chats/:id", requireAuth(), async (req, res) => {
       { $pull: { chats: { _id: req.params.id } } }
     );
     
-    console.log(`✅ Deleted chat with ID: ${req.params.id}`);
+    console.log(`Deleted chat with ID: ${req.params.id}`);
     res.status(200).json({ success: true });
   } catch (err) {
-    console.error("❌ Error deleting chat:", err);
+    console.error("Error deleting chat:", err);
     res.status(500).json({ error: "Error deleting chat!" });
   }
 });

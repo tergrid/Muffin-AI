@@ -93,18 +93,49 @@ const NewPrompt = ({ data }) => {
     }
   }, [data, question, answer, img.dbData]);
 
-  return (
+   return (
     <>
-      {img.isLoading && <div>Loading...</div>}
-      {img.dbData?.filePath && (
-        <IKImage
-          urlEndpoint={import.meta.env.VITE_IMAGE_KIT_ENDPOINT}
-          path={img.dbData?.filePath}
-          width={380}
-        />
+      {img.isLoading && <div>Uploading image...</div>}
+      
+      {/* Image preview */}
+      {img.previewUrl && !img.dbData.filePath && (
+        <div className="image-preview">
+          <img src={img.previewUrl} alt="Preview" style={{ maxWidth: '300px', borderRadius: '10px' }} />
+          <button 
+            className="remove-image" 
+            onClick={() => setImg({ isLoading: false, error: '', previewUrl: null, dbData: {}, aiData: {} })}
+          >
+            ✕
+          </button>
+        </div>
       )}
+      
+      {/* Uploaded image */}
+      {img.dbData?.filePath && (
+        <div className="image-preview">
+          <IKImage
+            urlEndpoint={import.meta.env.VITE_IMAGE_KIT_ENDPOINT}
+            path={img.dbData?.filePath}
+            width={300}
+            height="auto"
+            transformation={[{
+              height: 300,
+              width: 400,
+              cropMode: 'maintain_ratio'
+            }]}
+          />
+          <button 
+            className="remove-image" 
+            onClick={() => setImg({ isLoading: false, error: '', previewUrl: null, dbData: {}, aiData: {} })}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      
       {question && <div className="message user">{question}</div>}
       {answer && <div className="message"><Markdown>{answer}</Markdown></div>}
+      
       <div className="endChat">
         <form className="newForm" onSubmit={handleSubmit} ref={formRef}>
           <Upload setImg={setImg} />
@@ -113,7 +144,7 @@ const NewPrompt = ({ data }) => {
             name="text"
             placeholder="Ask Anything..."
           />
-          <button type="submit">
+          <button type="submit" disabled={img.isLoading}>
             <img src="/arrow.png" alt="Submit" />
           </button>
         </form>
